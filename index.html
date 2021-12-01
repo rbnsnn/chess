@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots"content="noindex">
+
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet"
+      href="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.css"
+      integrity="sha384-q94+BZtLrkL1/ohfjR8c6L+A6qzNH9R2hBLwyoAfu3i/WCvQjzL2RQJ3uNHDISdU"
+      crossorigin="anonymous">
+
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"
+      integrity="sha384-ZvpUoO/+PpLXR1lu4jmpXWu80pZlYUAfxl5NsBMWOEPSjUn/6Z/hRTt8+pR6L4N2"
+      crossorigin="anonymous"></script>
+
+    <script src="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.js"
+      integrity="sha384-8Vi8VHwn3vjQ9eUHUxex3JSN/NFqUg3QbPyX8kWyb93+8AC/pPWTzj+nHtbC5bxD"
+      crossorigin="anonymous"></script>
+
+    <title>Chess</title>
+</head>
+<body>
+
+    <div class="container">
+        <div id="board" style="width: 400px"></div>
+
+        <div>
+        
+        <button id="clearBtn">Clear Board</button>
+        </div>
+    </div>
+    <script>
+
+    
+
+        const game = {
+            turn: 'w',
+            gameOver: false,
+        }
+
+
+
+const checkWin = position => {
+    
+
+    positionsArray = Object.values(position)
+    if(positionsArray.indexOf('bK') < 0) {
+        console.log('white wins')
+    }else if (positionsArray.indexOf('wK') < 0){
+        console.log('black wins')
+    }
+}
+
+const checkCollision = (oldPos, nextMove, piece) => {
+    const collisionKeys = Object.keys(oldPos)
+    const collisionValues = Object.values(oldPos)
+
+    const collidedPos = collisionKeys.indexOf(nextMove)
+    const collidedPiece = collisionValues[collidedPos]
+
+
+    if (piece.search(/^w/) !== -1 && collidedPos !== -1 && collidedPiece.search(/^w/) !== -1) return true
+    if (piece.search(/^b/) !== -1 && collidedPos !== -1 && collidedPiece.search(/^b/) !== -1) return true
+    
+
+}
+
+const checkLegalMove = (source, target, piece, newPos, oldPos) => {
+        let legalMove = '';
+        let diffX = 0;
+        let diffY = 0;
+        let targetX;
+        let targetY;
+
+        
+        if (piece === 'wP') {
+            targetX = source[0];
+            targetY = (Number(source[1])+ 1);
+
+            legalMove = `${targetX}${targetY}`
+            if(checkCollision(oldPos, legalMove, piece)){
+                    return
+                }
+            return legalMove
+        }
+        
+        else if (piece === 'bP') {
+            targetX = source[0];
+            targetY = (Number(source[1]) - 1);
+            
+            legalMove = `${targetX}${targetY}`
+            if(checkCollision(oldPos, legalMove, piece)){
+                    return
+                }
+            return legalMove
+        }
+        
+        else if (piece === 'wK' || piece === 'bK') {
+        
+            sourceX = source.charCodeAt(0);
+            targetX = target.charCodeAt(0);
+
+            sourceY = Number(source[1]);
+            targetY = Number(target[1]);
+            
+            if(targetX === (sourceX+1) || targetX === (sourceX-1)){
+                targetX = String.fromCharCode(targetX)
+                legalMove = `${targetX}${sourceY}`
+
+                if(checkCollision(oldPos, legalMove, piece)){
+                    return
+                }
+                return legalMove
+
+            }else if(targetY === (sourceY+1) || targetY === (sourceY-1)){
+                targetX = String.fromCharCode(sourceX)
+                legalMove = `${targetX}${targetY}`
+
+                if(checkCollision(oldPos, legalMove, piece)){
+                    return
+                }
+            return legalMove 
+
+            }else {
+                return
+            }
+            
+            
+            
+        }
+
+        else if (piece === 'wQ' || piece === 'bQ'){
+            sourceX = source.charCodeAt(0);
+            targetX = target.charCodeAt(0);
+            sourceY = Number(source[1]);
+            targetY = Number(target[1]);
+
+            diffX = Math.abs(sourceX - targetX)
+            diffY = Math.abs(sourceY - targetY)
+
+            if(((targetX === (sourceX+1) || targetX === (sourceX-1)) || (targetY === (sourceY+1) || targetY === (sourceY-1))) && (diffX <= 1 && diffY <= 1)){          
+                targetX = String.fromCharCode(targetX)
+                legalMove = `${targetX}${targetY}`
+                if(checkCollision(oldPos, legalMove, piece)){
+                    return
+                }
+                return legalMove
+                }else {
+                    return
+            }
+        }
+        return legalMove
+    }
+
+const onDrop = (source, target, piece, newPos, oldPos, orientation) => {
+
+    if (target !== checkLegalMove(source, target, piece, newPos, oldPos)) {
+    return 'snapback'
+    
+  }
+
+    // if (game.turn === 'w'){
+    //   game.turn = 'b'
+    // }else if (game.turn === 'b'){
+    //     game.turn = 'w'
+    // }
+  }
+
+const onDragStart = (source, piece, position, orientation) => {
+    checkWin(position)
+if (game.gameOver) return false
+
+if ((game.turn === 'w' && piece.search(/^b/) !== -1) ||
+  (game.turn === 'b' && piece.search(/^w/) !== -1)) {
+return false
+}
+}
+
+const onChange = (oldPos, newPos) => {
+    checkWin(newPos)
+    
+} 
+
+
+        var config = {
+            position: '3qk3/8/pppppppp/8/8/PPPPPPPP/8/3QK3',
+            draggable: true,
+            dropOffBoard: 'snapback',
+            onDragStart: onDragStart,
+            onDrop: onDrop,
+            onChange: onChange,
+            moveSpeed: 'slow',
+            snapbackSpeed: 500,
+            snapSpeed: 100,
+            // orientation: playerOrientation[orientationIndex],
+        }
+
+        var board = Chessboard('board', config)
+
+        
+       
+        $('#clearBtn').on('click', () => board.position('3qk3/8/pppppppp/8/8/PPPPPPPP/8/3QK3'))
+
+    </script>
+    
+</body>
+</html>
