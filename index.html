@@ -54,17 +54,25 @@ const checkWin = position => {
     }
 }
 
-const checkCollision = (oldPos, nextMove, piece) => {
+
+const checkCollision = (oldPos, nextMove, piece, newPos) => {
     const collisionKeys = Object.keys(oldPos)
     const collisionValues = Object.values(oldPos)
 
     const collidedPos = collisionKeys.indexOf(nextMove)
     const collidedPiece = collisionValues[collidedPos]
 
+    if (piece === 'wP' && nextMove.search(/^[a-h][8]/) !== -1){
+       const newPosition = {
+            ...newPos,
+            [nextMove]: 'wQ'
+        }
+        
+        return onMoveEnd(oldPos, newPosition)
+    }
 
     if (piece.search(/^w/) !== -1 && collidedPos !== -1 && collidedPiece.search(/^w/) !== -1) return true
     if (piece.search(/^b/) !== -1 && collidedPos !== -1 && collidedPiece.search(/^b/) !== -1) return true
-    
 
 }
 
@@ -78,24 +86,34 @@ const checkLegalMove = (source, target, piece, newPos, oldPos) => {
         
         if (piece === 'wP') {
             targetX = source[0];
-            targetY = (Number(source[1])+ 1);
+            targetY = Number(source[1]);
 
+            if(targetY < 8){
+
+            targetY++
             legalMove = `${targetX}${targetY}`
-            if(checkCollision(oldPos, legalMove, piece)){
+            if(checkCollision(oldPos, legalMove, piece, newPos)){
                     return
                 }
+            }else{
             return legalMove
+        }
         }
         
         else if (piece === 'bP') {
             targetX = source[0];
-            targetY = (Number(source[1]) - 1);
-            
+            targetY = Number(source[1]);
+
+            if(targetY < 8){
+
+            targetY--
             legalMove = `${targetX}${targetY}`
-            if(checkCollision(oldPos, legalMove, piece)){
+            if(checkCollision(oldPos, legalMove, piece, newPos)){
                     return
                 }
+            }else{
             return legalMove
+        }
         }
         
         else if (piece === 'wK' || piece === 'bK') {
@@ -156,7 +174,7 @@ const checkLegalMove = (source, target, piece, newPos, oldPos) => {
     }
 
 const onDrop = (source, target, piece, newPos, oldPos, orientation) => {
-
+    checkWin(oldPos)
     if (target !== checkLegalMove(source, target, piece, newPos, oldPos)) {
     return 'snapback'
     
@@ -170,7 +188,7 @@ const onDrop = (source, target, piece, newPos, oldPos, orientation) => {
   }
 
 const onDragStart = (source, piece, position, orientation) => {
-    checkWin(position)
+    
 if (game.gameOver) return false
 
 if ((game.turn === 'w' && piece.search(/^b/) !== -1) ||
@@ -179,26 +197,25 @@ return false
 }
 }
 
-const onChange = (oldPos, newPos) => {
-    checkWin(newPos)
-    
-} 
+const onMoveEnd = (oldPos, newPos) => {
+    return board.position(newPos)
+}
 
 
-        var config = {
+        const config = {
             position: '3qk3/8/pppppppp/8/8/PPPPPPPP/8/3QK3',
             draggable: true,
             dropOffBoard: 'snapback',
             onDragStart: onDragStart,
             onDrop: onDrop,
-            onChange: onChange,
+            onMoveEnd: onMoveEnd,
             moveSpeed: 'slow',
             snapbackSpeed: 500,
             snapSpeed: 100,
             // orientation: playerOrientation[orientationIndex],
         }
 
-        var board = Chessboard('board', config)
+        const board = Chessboard('board', config)
 
         
        
