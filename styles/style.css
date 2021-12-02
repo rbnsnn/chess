@@ -2,8 +2,9 @@
     display: flex;
     flex-direction: column;
     align-items: center;
+    margin-top: 50px;
 }
 
 #board2 {
-    margin: 0 auto;
+    margin: 100 auto;
 }
