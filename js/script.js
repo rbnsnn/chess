@@ -1,4 +1,4 @@
-// 'use strict';
+'use strict';
 const game = {
     turn: 'w',
     gameOver: false,
@@ -136,7 +136,6 @@ const onDrop = (source, target, piece, newPos, oldPos) => {
     // else if (game.turn === 'b') game.turn = 'w';
 }
 
-
 const onDragStart = (source, piece, position, orientation) => {
     if (game.gameOver) return false
 
@@ -164,7 +163,4 @@ let config = {
 }
 
 const board = Chessboard('board', config);
-
-
-
 $('#clearBtn').on('click', resetBoard);
