@@ -51,43 +51,24 @@ const checkAttack = (oldPos, nextMove, diffX, piece) => {
     const collidedPos = collisionKeys.indexOf(nextMove);
     const collidedPiece = collisionValues[collidedPos];
 
-    console.log(
-        `
-        nextMove: ${nextMove}
-        collidedPiece: ${collidedPiece}
-        diffX: ${diffX}
-        piece: ${piece}
-        collidedPos: ${collidedPos}`
-
-    )
-
-    console.log(collisionValues)
-
-    if (piece === 'wP' && collidedPos !== -1 && collidedPiece.search(/^b/) !== -1 && diffX === 1) {
-        console.log('dziaua')
-        return true
-    } else return false
-
+    if (piece === 'wP' && collidedPos !== -1 && collidedPiece.search(/^b/) !== -1 && diffX === 1) return true
+    if (piece === 'bP' && collidedPos !== -1 && collidedPiece.search(/^w/) !== -1 && diffX === 1) return true
+    else return false
 }
-const checkCollision = (newPos, oldPos, nextMove, piece, diffX) => {
+
+const checkCollision = (oldPos, nextMove, piece, diffX) => {
     const collisionKeys = Object.keys(oldPos);
     const collisionValues = Object.values(oldPos);
 
     const collidedPos = collisionKeys.indexOf(nextMove);
     const collidedPiece = collisionValues[collidedPos];
 
-    console.log(`
-        collisionKeys: ${collisionKeys}
-        collisionValues ${collisionValues}
-        collidedPos: ${collidedPos}
-        collidedPiece: ${collidedPiece}
-    `)
-
-    if ((piece === 'wP' && collidedPos !== -1 && collidedPiece.search(/^b/) !== -1) || diffX === 1) return true;
-    if ((piece === 'bP' && collidedPos !== -1 && collidedPiece.search(/^w/) !== -1) || diffX === 1) return true;
-
-    if (piece.search(/^w/) !== -1 && collidedPos !== -1 && collidedPiece.search(/^w/) !== -1) return true;
-    if (piece.search(/^b/) !== -1 && collidedPos !== -1 && collidedPiece.search(/^b/) !== -1) return true;
+    if (piece === 'wP' || 'bP') {
+        if ((piece === 'wP' && collidedPos !== -1 && collidedPiece.search(/^b/) !== -1) || diffX === 1) return true;
+        if ((piece === 'bP' && collidedPos !== -1 && collidedPiece.search(/^w/) !== -1) || diffX === 1) return true;
+    }
+    else if (piece.search(/^w/) !== -1 && collidedPos !== -1 && collidedPiece.search(/^w/) !== -1) return true;
+    else if (piece.search(/^b/) !== -1 && collidedPos !== -1 && collidedPiece.search(/^b/) !== -1) return true;
 }
 
 const checkLegalMove = (source, target, piece, newPos, oldPos) => {
@@ -107,22 +88,28 @@ const checkLegalMove = (source, target, piece, newPos, oldPos) => {
         if (((targetY === (sourceY + 1))) && (diffX <= 1 && diffY <= 1)) {
             legalMove = `${targetX}${targetY}`;
             if (checkAttack(oldPos, legalMove, diffX, piece)) {
+                checkPromotion(piece, legalMove, newPos)
                 return legalMove = `${targetX}${targetY}`
             }
-            if (checkCollision(newPos, oldPos, legalMove, piece, diffX)) return;
-            checkPromotion(piece, legalMove, newPos)
-
+            if (checkCollision(oldPos, legalMove, piece, diffX)) return
+            else checkPromotion(piece, legalMove, newPos)
             return legalMove;
         }
     }
 
     else if (piece === 'bP') {
         diffY = sourceY - targetY;
-        if (diffY === 1 && diffX === 0) {
-            targetX = String.fromCharCode(targetX)
+        targetX = String.fromCharCode(targetX);
+        sourceX = String.fromCharCode(sourceX);
+
+        if (((targetY === (sourceY - 1))) && (diffX <= 1 && diffY <= 1)) {
             legalMove = `${targetX}${targetY}`;
-            if (checkCollision(newPos, oldPos, legalMove, piece, diffX)) return;
-            checkPromotion(piece, legalMove, newPos);
+            if (checkAttack(oldPos, legalMove, diffX, piece)) {
+                checkPromotion(piece, legalMove, newPos)
+                return legalMove = `${targetX}${targetY}`
+            }
+            if (checkCollision(oldPos, legalMove, piece, diffX)) return
+            else checkPromotion(piece, legalMove, newPos)
             return legalMove;
         }
     }
@@ -132,14 +119,14 @@ const checkLegalMove = (source, target, piece, newPos, oldPos) => {
         if (targetX === (sourceX + 1) || targetX === (sourceX - 1)) {
             targetX = String.fromCharCode(targetX);
             legalMove = `${targetX}${sourceY}`;
-            if (checkCollision(newPos, oldPos, legalMove, piece, diffX)) return;
+            if (checkCollision(oldPos, legalMove, piece, diffX)) return;
             return legalMove;
         }
 
         if (targetY === (sourceY + 1) || targetY === (sourceY - 1)) {
             targetX = String.fromCharCode(sourceX);
             legalMove = `${targetX}${targetY}`;
-            if (checkCollision(newPos, oldPos, legalMove, piece, diffX)) return;
+            if (checkCollision(oldPos, legalMove, piece, diffX)) return;
             return legalMove;
         }
     }
@@ -149,7 +136,7 @@ const checkLegalMove = (source, target, piece, newPos, oldPos) => {
         if (((targetX === (sourceX + 1) || targetX === (sourceX - 1)) || (targetY === (sourceY + 1) || targetY === (sourceY - 1))) && (diffX <= 1 && diffY <= 1)) {
             targetX = String.fromCharCode(targetX);
             legalMove = `${targetX}${targetY}`;
-            if (checkCollision(newPos, oldPos, legalMove, piece, diffX)) return;
+            if (checkCollision(oldPos, legalMove, piece, diffX)) return;
             return legalMove;
         }
     }
