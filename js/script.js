@@ -1,13 +1,8 @@
 'use strict';
-const game = {
-    turn: 'w',
-    gameOver: false,
-}
-
 const resetBoard = () => {
     game.turn = 'w';
-    Chessboard('board', config = {
-        ...config,
+    Chessboard('board', game.config = {
+        ...game.config,
         position: '3qk3/8/pppppppp/8/8/PPPPPPPP/8/3QK3'
     });
 }
@@ -25,8 +20,8 @@ const checkPromotion = (piece, nextMove, newPos) => {
             [nextMove]: 'wQ'
         }
 
-        return Chessboard('board', config = {
-            ...config,
+        return Chessboard('board', game.config = {
+            ...game.config,
             position,
         })
     }
@@ -37,12 +32,13 @@ const checkPromotion = (piece, nextMove, newPos) => {
             [nextMove]: 'bQ'
         }
 
-        return Chessboard('board', config = {
-            ...config,
+        return Chessboard('board', game.config = {
+            ...game.config,
             position,
         })
     }
 }
+
 const checkAttack = (oldPos, nextMove, diffX, piece) => {
 
     const collisionKeys = Object.keys(oldPos);
@@ -142,6 +138,10 @@ const checkLegalMove = (source, target, piece, newPos, oldPos) => {
     }
 }
 
+const chessAi = () => {
+
+}
+
 const onDrop = (source, target, piece, newPos, oldPos) => {
     if (target !== checkLegalMove(source, target, piece, newPos, oldPos)) return 'snapback'
     // if (game.turn === 'w') game.turn = 'b';
@@ -161,18 +161,22 @@ const onChange = (newPos, oldPos) => {
     checkWin(oldPos);
 }
 
-let config = {
-    position: '3qk3/8/pppppppp/8/8/PPPPPPPP/8/3QK3',
-    draggable: true,
-    dropOffBoard: 'snapback',
-    onDragStart: onDragStart,
-    onDrop: onDrop,
-    onChange: onChange,
-    moveSpeed: 'slow',
-    snapbackSpeed: 500,
-    snapSpeed: 100,
-    // orientation: playerOrientation[orientationIndex],
+const game = {
+    turn: 'w',
+    gameOver: false,
+    config: {
+        position: '3qk3/8/pppppppp/8/8/PPPPPPPP/8/3QK3',
+        draggable: true,
+        dropOffBoard: 'snapback',
+        onDragStart: onDragStart,
+        onDrop: onDrop,
+        onChange: onChange,
+        moveSpeed: 'slow',
+        snapbackSpeed: 500,
+        snapSpeed: 100,
+        // orientation: playerOrientation[orientationIndex],
+    },
 }
 
-const board = Chessboard('board', config);
+const board = Chessboard('board', game.config);
 $('#clearBtn').on('click', resetBoard);
