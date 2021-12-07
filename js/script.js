@@ -7,17 +7,25 @@ const resetBoard = () => {
     });
 }
 
-const checkPromotionNew = (newPos, ai) => {
+const pVsQ = () => {
+    game.turn = 'w';
+    Chessboard('board', game.config = {
+        ...game.config,
+        position: 'qqqqkqqq/qqqqqqqq/8/8/8/8/PPPPPPPP/4K3'
+    });
+}
+
+const checkPromotion = newPos => {
+    console.log(newPos)
     const promotionArray = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h']
-    console.log(ai)
     for (let i = 0; i < 8; i++) {
-        let position = { ...ai }
+
         const check = promotionArray[i] + 8
         const checkB = promotionArray[i] + 1
         if (newPos.hasOwnProperty(check) || newPos.hasOwnProperty(checkB)) {
             if (newPos[check] === 'wP') {
                 const position = {
-                    ...ai,
+                    ...newPos,
                     [check]: 'wQ'
                 }
 
@@ -28,7 +36,7 @@ const checkPromotionNew = (newPos, ai) => {
             }
             if (newPos[checkB] === 'bP') {
                 const position = {
-                    ...ai,
+                    ...newPos,
                     [checkB]: 'bQ'
                 }
 
@@ -38,39 +46,13 @@ const checkPromotionNew = (newPos, ai) => {
                 })
             }
         }
-
     }
 }
 
-const checkWin = position => {
-    const positionsArray = Object.values(position);
+const checkWin = newPos => {
+    const positionsArray = Object.values(newPos);
     if (positionsArray.indexOf('bK') < 0) console.log('white wins');
     if (positionsArray.indexOf('wK') < 0) console.log('black wins');
-}
-
-const checkPromotion = (piece, nextMove, newPos, source) => {
-    if (piece === 'wP' && nextMove.search(/^[a-h][8]/) !== -1) {
-
-        const position = {
-            ...newPos,
-            [nextMove]: 'wQ'
-        }
-        return Chessboard('board', game.config = {
-            ...game.config,
-            position,
-        })
-    }
-    if (piece === 'bP' && nextMove.search(/^[a-h][1]/) !== -1) {
-
-        const position = {
-            ...newPos,
-            [nextMove]: 'bQ'
-        }
-        return Chessboard('board', game.config = {
-            ...game.config,
-            position,
-        })
-    }
 }
 
 const checkAttack = (oldPos, nextMove, diffX, piece) => {
@@ -101,19 +83,17 @@ const checkCollision = (oldPos, nextMove, piece, diffX) => {
 }
 
 const checkLegalMove = (source, target, piece, newPos, oldPos) => {
+    const sourceXCh = source.charCodeAt(0);
+    const targetXCh = target.charCodeAt(0);
+    const sourceY = Number(source[1]);
+    const targetY = Number(target[1]);
+    const diffX = Math.abs(sourceXCh - targetXCh);
+    const diffY = Math.abs(sourceY - targetY);
+    const targetX = String.fromCharCode(targetXCh);
+    const sourceX = String.fromCharCode(sourceXCh);
     let legalMove = '';
-    let sourceX = source.charCodeAt(0);
-    let targetX = target.charCodeAt(0);
-    let sourceY = Number(source[1]);
-    let targetY = Number(target[1]);
-    let diffX = Math.abs(sourceX - targetX);
-    let diffY = Math.abs(sourceY - targetY);
 
     if (piece === 'wP') {
-        diffY = sourceY - targetY;
-        targetX = String.fromCharCode(targetX);
-        sourceX = String.fromCharCode(sourceX);
-
         if (((targetY === (sourceY + 1))) && (diffX <= 1 && diffY <= 1)) {
             legalMove = `${targetX}${targetY}`;
             if (checkAttack(oldPos, legalMove, diffX, piece)) {
@@ -124,10 +104,6 @@ const checkLegalMove = (source, target, piece, newPos, oldPos) => {
     }
 
     else if (piece === 'bP') {
-        diffY = sourceY - targetY;
-        targetX = String.fromCharCode(targetX);
-        sourceX = String.fromCharCode(sourceX);
-
         if (((targetY === (sourceY - 1))) && (diffX <= 1 && diffY <= 1)) {
             legalMove = `${targetX}${targetY}`;
             if (checkAttack(oldPos, legalMove, diffX, piece)) {
@@ -135,29 +111,22 @@ const checkLegalMove = (source, target, piece, newPos, oldPos) => {
             }
             if (checkCollision(oldPos, legalMove, piece, diffX)) return
         }
-        return legalMove
     }
 
     else if (piece === 'wK' || piece === 'bK') {
-
-        if (targetX === (sourceX + 1) || targetX === (sourceX - 1)) {
-            targetX = String.fromCharCode(targetX);
+        if (diffX === 1 && diffY < 1) {
             legalMove = `${targetX}${sourceY}`;
             if (checkCollision(oldPos, legalMove, piece, diffX)) return;
         }
-
-        if (targetY === (sourceY + 1) || targetY === (sourceY - 1)) {
-            targetX = String.fromCharCode(sourceX);
-            legalMove = `${targetX}${targetY}`;
+        if (diffY === 1 && diffX < 1) {
+            legalMove = `${sourceX}${targetY}`;
             if (checkCollision(oldPos, legalMove, piece, diffX)) return;
         }
 
     }
 
     else if (piece === 'wQ' || piece === 'bQ') {
-
-        if (((targetX === (sourceX + 1) || targetX === (sourceX - 1)) || (targetY === (sourceY + 1) || targetY === (sourceY - 1))) && (diffX <= 1 && diffY <= 1)) {
-            targetX = String.fromCharCode(targetX);
+        if ((diffY <= 1 && diffX === 1) || (diffX <= 1 && diffY === 1)) {
             legalMove = `${targetX}${targetY}`;
             if (checkCollision(oldPos, legalMove, piece, diffX)) return;
         }
@@ -166,13 +135,14 @@ const checkLegalMove = (source, target, piece, newPos, oldPos) => {
 }
 
 const chessAi = (newPos, oldPos) => {
+    console.log(newPos)
     const posValues = Object.entries(newPos);
-    const regexp = new RegExp(/[1-8][a-h]/gm)
+    const regexp = new RegExp(/[1-8]b/gm)
     const listOfTarget = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h']
-    const listOfSource = []
-    const indexOfTargetX = Math.floor(Math.random() * 8)
+    const listOfAi = []
     const tempArray = []
-    let isChanged = false
+    const possibleMovesAi = []
+    let position = { ...newPos }
 
     posValues.forEach((element) => {
         tempArray.push(element.join(''))
@@ -180,50 +150,48 @@ const chessAi = (newPos, oldPos) => {
 
     tempArray.forEach((element) => {
         if (element.match(regexp))
-            listOfSource.push(element)
+            listOfAi.push(element)
     })
 
-    const indexOfSource = Math.floor(Math.random() * listOfSource.length)
-    const pieceAi = listOfSource[indexOfSource].slice(2, 4)
-    const sourceAi = listOfSource[indexOfSource].slice(0, 2);
+    for (let i = 0; i < listOfAi.length; i++) {
+        const pieceSourceToCheck = listOfAi[i].slice(0, 2)
+        const pieceToCheck = listOfAi[i].slice(2, 4)
 
-    let targetAiX = listOfTarget[indexOfTargetX]
-    let targetAiY = Math.floor(Math.random() * 8)
-    let targetAi = `${targetAiX}${targetAiY}`
-
-    let isTrue = checkLegalMove(sourceAi, targetAi, pieceAi, newPos, oldPos)
-
-    if (isTrue !== undefined && isTrue !== '') {
-        const position = {
-            ...newPos,
-            [isTrue]: pieceAi
+        for (let j = 0; j < listOfTarget.length; j++) {
+            for (let k = 1; k <= 8; k++) {
+                const targetToCheck = `${listOfTarget[j]}${k}`
+                const isPossible = checkLegalMove(pieceSourceToCheck, targetToCheck, pieceToCheck, newPos, oldPos)
+                if (isPossible !== undefined && isPossible !== '') {
+                    possibleMovesAi.push([pieceSourceToCheck, targetToCheck, pieceToCheck])
+                }
+            }
         }
+    }
 
+    if (possibleMovesAi.length !== 0) {
+        const moveIndexAi = Math.floor(Math.random() * possibleMovesAi.length)
+        const moveAi = possibleMovesAi[moveIndexAi]
+        const sourceAi = moveAi[0]
+        const targetAi = moveAi[1]
+        const pieceAi = moveAi[2]
+
+        position = {
+            ...position,
+            [targetAi]: pieceAi
+        }
         delete position[sourceAi]
         Chessboard('board', game.config = {
             ...game.config,
             position,
         })
-
-        isChanged = true
-        return position
     }
-    else {
-        isChanged = false
-    }
-    return isChanged
+    return position
 }
 
 const onDrop = (source, target, piece, newPos, oldPos) => {
     if (target !== checkLegalMove(source, target, piece, newPos, oldPos)) return 'snapback';
-    let ai = false
-    do {
-        ai = chessAi(newPos, oldPos)
-    } while (!ai)
-    checkPromotionNew(newPos, ai)
-
-
-
+    const ai = chessAi(newPos, oldPos)
+    checkPromotion(ai)
     // if (game.turn === 'w') game.turn = 'b';
     // else if (game.turn === 'b') game.turn = 'w';
 }
@@ -238,6 +206,7 @@ const onDragStart = (source, piece, position, orientation) => {
 }
 
 const onChange = (newPos, oldPos) => {
+
     checkWin(oldPos);
 }
 
@@ -260,3 +229,4 @@ const game = {
 
 const board = Chessboard('board', game.config);
 $('#clearBtn').on('click', resetBoard);
+$('#pVsQ').on('click', pVsQ);
