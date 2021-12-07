@@ -7,16 +7,29 @@ const resetBoard = () => {
     });
 }
 
-const checkPromotionNew = (newPos) => {
+const checkPromotionNew = (newPos, ai) => {
     const promotionArray = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h']
-    console.log(newPos)
+    console.log(ai)
     for (let i = 0; i < 8; i++) {
+        let position = { ...ai }
         const check = promotionArray[i] + 8
-        if (newPos.hasOwnProperty(check)) {
+        const checkB = promotionArray[i] + 1
+        if (newPos.hasOwnProperty(check) || newPos.hasOwnProperty(checkB)) {
             if (newPos[check] === 'wP') {
                 const position = {
-                    ...newPos,
-                    [newPos[check]]: 'wQ'
+                    ...ai,
+                    [check]: 'wQ'
+                }
+
+                return Chessboard('board', game.config = {
+                    ...game.config,
+                    position,
+                })
+            }
+            if (newPos[checkB] === 'bP') {
+                const position = {
+                    ...ai,
+                    [checkB]: 'bQ'
                 }
 
                 return Chessboard('board', game.config = {
@@ -35,10 +48,9 @@ const checkWin = position => {
     if (positionsArray.indexOf('wK') < 0) console.log('black wins');
 }
 
-const checkPromotion = (piece, nextMove, newPos) => {
-    console.log('check')
+const checkPromotion = (piece, nextMove, newPos, source) => {
     if (piece === 'wP' && nextMove.search(/^[a-h][8]/) !== -1) {
-        console.log('promotion true')
+
         const position = {
             ...newPos,
             [nextMove]: 'wQ'
@@ -48,9 +60,8 @@ const checkPromotion = (piece, nextMove, newPos) => {
             position,
         })
     }
-
     if (piece === 'bP' && nextMove.search(/^[a-h][1]/) !== -1) {
-        console.log('promotion true')
+
         const position = {
             ...newPos,
             [nextMove]: 'bQ'
@@ -193,7 +204,9 @@ const chessAi = (newPos, oldPos) => {
             ...game.config,
             position,
         })
+
         isChanged = true
+        return position
     }
     else {
         isChanged = false
@@ -207,8 +220,9 @@ const onDrop = (source, target, piece, newPos, oldPos) => {
     do {
         ai = chessAi(newPos, oldPos)
     } while (!ai)
+    checkPromotionNew(newPos, ai)
 
-    checkPromotion(piece, target, newPos)
+
 
     // if (game.turn === 'w') game.turn = 'b';
     // else if (game.turn === 'b') game.turn = 'w';
