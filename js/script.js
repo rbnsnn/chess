@@ -16,7 +16,6 @@ const pVsQ = () => {
 }
 
 const checkPromotion = newPos => {
-    console.log(newPos)
     const promotionArray = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h']
     for (let i = 0; i < 8; i++) {
 
@@ -51,8 +50,14 @@ const checkPromotion = newPos => {
 
 const checkWin = newPos => {
     const positionsArray = Object.values(newPos);
-    if (positionsArray.indexOf('bK') < 0) console.log('white wins');
-    if (positionsArray.indexOf('wK') < 0) console.log('black wins');
+    if (positionsArray.indexOf('bK') < 0 || game.possibleMovesBlack === 0) {
+        game.gameOver = true;
+        game.winner = 'White'
+    }
+    if (positionsArray.indexOf('wK') < 0 || game.possibleMovesWhite === 0) {
+        game.gameOver = true;
+        game.winner = 'Black'
+    }
 }
 
 const checkAttack = (oldPos, nextMove, diffX, piece) => {
@@ -134,40 +139,64 @@ const checkLegalMove = (source, target, piece, newPos, oldPos) => {
     return legalMove
 }
 
-const chessAi = (newPos, oldPos) => {
-    console.log(newPos)
+const checkPossibleMoves = (newPos, oldPos) => {
     const posValues = Object.entries(newPos);
-    const regexp = new RegExp(/[1-8]b/gm)
     const listOfTarget = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h']
-    const listOfAi = []
+    const listOfWhite = []
+    const listOfBlack = []
     const tempArray = []
-    const possibleMovesAi = []
-    let position = { ...newPos }
+    const possibleMovesWhite = []
+    const possibleMovesBlack = []
+    const regexpWhite = new RegExp(/[1-8]w/gm)
+    const regexpBlack = new RegExp(/[1-8]b/gm)
 
     posValues.forEach((element) => {
         tempArray.push(element.join(''))
     })
 
     tempArray.forEach((element) => {
-        if (element.match(regexp))
-            listOfAi.push(element)
+        if (element.match(regexpWhite)) listOfWhite.push(element)
+        if (element.match(regexpBlack)) listOfBlack.push(element)
     })
 
-    for (let i = 0; i < listOfAi.length; i++) {
-        const pieceSourceToCheck = listOfAi[i].slice(0, 2)
-        const pieceToCheck = listOfAi[i].slice(2, 4)
+    for (let i = 0; i < listOfWhite.length; i++) {
+        const pieceSourceToCheck = listOfWhite[i].slice(0, 2)
+        const pieceToCheck = listOfWhite[i].slice(2, 4)
 
         for (let j = 0; j < listOfTarget.length; j++) {
             for (let k = 1; k <= 8; k++) {
                 const targetToCheck = `${listOfTarget[j]}${k}`
-                const isPossible = checkLegalMove(pieceSourceToCheck, targetToCheck, pieceToCheck, newPos, oldPos)
+                const isPossible = checkLegalMove(pieceSourceToCheck, targetToCheck, pieceToCheck, oldPos, newPos)
                 if (isPossible !== undefined && isPossible !== '') {
-                    possibleMovesAi.push([pieceSourceToCheck, targetToCheck, pieceToCheck])
+                    possibleMovesWhite.push([pieceSourceToCheck, targetToCheck, pieceToCheck])
                 }
             }
         }
     }
 
+    for (let i = 0; i < listOfBlack.length; i++) {
+        const pieceSourceToCheck = listOfBlack[i].slice(0, 2)
+        const pieceToCheck = listOfBlack[i].slice(2, 4)
+
+        for (let j = 0; j < listOfTarget.length; j++) {
+            for (let k = 1; k <= 8; k++) {
+                const targetToCheck = `${listOfTarget[j]}${k}`
+                const isPossible = checkLegalMove(pieceSourceToCheck, targetToCheck, pieceToCheck, oldPos, newPos)
+                if (isPossible !== undefined && isPossible !== '') {
+                    possibleMovesBlack.push([pieceSourceToCheck, targetToCheck, pieceToCheck])
+                }
+            }
+        }
+    }
+    game.possibleMovesWhite = possibleMovesWhite.length
+    game.possibleMovesBlack = possibleMovesBlack.length
+    return [possibleMovesWhite, possibleMovesBlack]
+}
+
+const chessAi = (newPos, oldPos) => {
+    let position = { ...newPos }
+    const possibleMoves = checkPossibleMoves(newPos, oldPos)
+    const possibleMovesAi = possibleMoves[1]
     if (possibleMovesAi.length !== 0) {
         const moveIndexAi = Math.floor(Math.random() * possibleMovesAi.length)
         const moveAi = possibleMovesAi[moveIndexAi]
@@ -190,29 +219,36 @@ const chessAi = (newPos, oldPos) => {
 
 const onDrop = (source, target, piece, newPos, oldPos) => {
     if (target !== checkLegalMove(source, target, piece, newPos, oldPos)) return 'snapback';
-    const ai = chessAi(newPos, oldPos)
-    checkPromotion(ai)
-    // if (game.turn === 'w') game.turn = 'b';
-    // else if (game.turn === 'b') game.turn = 'w';
+    if (game.turn === 'b') game.turn = 'w'
+    else if (game.turn === 'w') game.turn = 'b'
+
+    if ($('#aiOn').prop('checked') === true) {
+        const ai = chessAi(newPos, oldPos)
+        checkPromotion(ai)
+        if (game.turn === 'b') game.turn = 'w'
+    }
 }
 
 const onDragStart = (source, piece, position, orientation) => {
     if (game.gameOver) return false
-
-    // if ((game.turn === 'w' && piece.search(/^b/) !== -1) ||
-    //     (game.turn === 'b' && piece.search(/^w/) !== -1)) {
-    //     return false
-    // }
+    if ((game.turn === 'w' && piece.search(/^b/) !== -1) ||
+        (game.turn === 'b' && piece.search(/^w/) !== -1)) {
+        return false
+    }
 }
 
 const onChange = (newPos, oldPos) => {
-
     checkWin(oldPos);
+    if (game.gameOver === true) board.destroy()
 }
 
 const game = {
+
+    possibleMovesWhite: 1,
+    possibleMovesBlack: 1,
     turn: 'w',
     gameOver: false,
+    winner: '',
     config: {
         position: '3qk3/8/pppppppp/8/8/PPPPPPPP/8/3QK3',
         draggable: true,
@@ -223,10 +259,11 @@ const game = {
         moveSpeed: 'slow',
         snapbackSpeed: 500,
         snapSpeed: 100,
-        // orientation: playerOrientation[orientationIndex],
+        orientation: 'white'
     },
 }
 
 const board = Chessboard('board', game.config);
+
 $('#clearBtn').on('click', resetBoard);
 $('#pVsQ').on('click', pVsQ);

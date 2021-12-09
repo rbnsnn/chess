@@ -8,3 +8,8 @@
 #board2 {
     margin: 100 auto;
 }
+
+button {
+    margin: 5%;
+    width: 100%;
+}
