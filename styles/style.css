@@ -1,15 +1,38 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-size: 10px;
+}
+
 .container {
     display: flex;
     flex-direction: column;
     align-items: center;
     margin-top: 50px;
+
 }
 
-#board2 {
-    margin: 100 auto;
+.container__buttons {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 50px;
+
 }
 
-button {
+.container__buttons--label {
+    font-size: 2rem;
+}
+
+.container__buttons--button {
+    font-size: 2rem;
     margin: 5%;
-    width: 100%;
+    width: 110%;
+}
+
+.container__winner {
+    display: none;
+    text-transform: uppercase;
+    font-size: 5rem;
 }

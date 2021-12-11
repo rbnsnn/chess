@@ -27,11 +27,12 @@
 <body>
 
     <div class="container">
-        <div id="board" style="width: 400px"></div>
-        <div class="container">   
-            <button id="clearBtn">Clear Board</button>
-            <button id="pVsQ">Pawns vs Queens</button>
-            <label for="aiOn">
+      <div class="container__winner"></div>
+        <div class="container__board" id="board" style="width: 400px"></div>
+        <div class="container__buttons">   
+            <button class="container__buttons--button" id="startBtn">Start Position</button>
+            <button class="container__buttons--button" id="pVsQ">Pawns vs Queens</button>
+            <label class="container__buttons--label" for="aiOn">
             <input type="checkbox"
                    id="aiOn"
                    name="aiOn"
